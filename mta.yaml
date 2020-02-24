@@ -1,0 +1,67 @@
+_schema-version: '3.2'
+ID: html5demo
+version: 0.0.1
+modules:
+  - name: html5demo_appRouter
+    type: approuter.nodejs
+    path: html5demo_appRouter
+    requires:
+      - name: html5demo_html_repo_runtime
+      - name: uaa_html5demo
+      - name: dest_html5demo
+      - name: conn_html5demo
+    parameters:
+      disk-quota: 256M
+      memory: 256M
+  - name: html5demo_ui_deployer
+    type: com.sap.html5.application-content
+    path: html5demo_ui_deployer
+    requires:
+      - name: html5demo_html_repo_host
+    build-parameters:
+      requires:
+        - artifacts:
+            - ./*
+          name: html5
+          target-path: resources/html5
+  - name: html5
+    type: html5
+    path: html5
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm run build
+      supported-platforms: []
+resources:
+  - name: html5demo_html_repo_runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
+  - name: html5demo_html_repo_host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+  - name: uaa_html5demo
+    type: org.cloudfoundry.managed-service
+    parameters:
+      path: ./xs-security.json
+      service: xsuaa
+      service-plan: application
+  - name: conn_html5demo
+    parameters:
+      service-plan: lite
+      service: connectivity
+    type: org.cloudfoundry.managed-service
+  - name: dest_html5demo
+    parameters:
+      service-plan: lite
+      service: destination
+    type: org.cloudfoundry.managed-service
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install
